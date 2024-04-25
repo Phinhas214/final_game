@@ -1,5 +1,4 @@
 //Phineas Asmelash
-let counter = 0;
 
 class Movement extends Phaser.Scene {
 
@@ -49,7 +48,6 @@ class Movement extends Phaser.Scene {
     update() {
        my.sprite.planet.y -= 10;
 
-       counter += 1; 
 
         if(this.Akey.isDown) {
             for(let property in my.sprite) {
