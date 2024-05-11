@@ -1,59 +1,14 @@
 
 
 let run_mode = false;
-class NextLevel extends Phaser.Scene {
 
-    constructor(){
-        super("nextLevel");
-        this.my = {sprite: {}};
-    }
-
-    preload() {
-        this.load.setPath("./assets/");
-        this.load.image("background", "uncolored_desert.png");  
-        this.load.image("plane", "ship_0014.png");
-        this.load.image("alienShip1", "shipBeige_manned.png");          
-        this.load.image("alienShip2", "shipBlue_manned.png");
-        this.load.image("laser", "tank_explosion4.png"); 
-        this.load.image("alienBullet", "tile_0000.png");
-        this.load.audio("baam", "footstep_grass_002.ogg");
-        
-        
-        this.load.image("boom1", "laser_burst1.png"); 
-        this.load.image("boom2", "laser_burst2.png"); 
-        this.load.image("boom3", "laser_burst3.png"); 
-        this.load.image("boom4", "laser_burst4.png"); 
-        this.load.image("boom5", "laser_burst5.png"); 
-        this.load.image("boom6", "laser_burst6.png"); 
-        this.load.image("boom7", "laser_burst7.png"); 
-        this.load.image("boom8", "laser_burst8.png"); 
-        this.load.image("boom9", "laser_burst9.png"); 
-        this.load.image("boom10", "laser_burst10.png"); 
-
-        this.Akey = null;
-        this.Dkey = null;
-    }
-
-
-    create() {
-        let my = this.my;
-        my.sprite.background = this.add.sprite(700, 150, "background");
-        my.sprite.background.setScale(1.4);
-    }
-
-    update() {
-        let my = this.my;    // create an alias to this.my for readability
-
-        console.log("you won!!! Next screen!!!");
-        //this.scene.start("playerScene");
-    }
-    
-}
 
 class Player extends Phaser.Scene {
     curve;
     curve2
     num_enemies = 4;
+    player_health = 2;
+    
     constructor(){
         super("playerScene");
         this.my = {sprite: {}};  // Create an object to hold sprite bindings
@@ -71,12 +26,14 @@ class Player extends Phaser.Scene {
 
     preload() {
         this.load.setPath("./assets/");
-        this.load.image("background", "uncolored_desert.png");  
+        this.load.image("background", "backgroundColorFall.png");  
         this.load.image("plane", "ship_0014.png");
         this.load.image("alienShip1", "shipBeige_manned.png");          
         this.load.image("alienShip2", "shipBlue_manned.png");
         this.load.image("laser", "tank_explosion4.png"); 
         this.load.image("alienBullet", "tile_0000.png");
+        this.load.image("heart", "heart.png"); 
+
         this.load.audio("baam", "footstep_grass_002.ogg");
         
         
@@ -91,6 +48,9 @@ class Player extends Phaser.Scene {
         this.load.image("boom9", "laser_burst9.png"); 
         this.load.image("boom10", "laser_burst10.png"); 
 
+        this.load.bitmapFont('classic_font', 'atari-smooth.png', 'atari-smooth.xml');
+
+
         this.Akey = null;
         this.Dkey = null;
     }
@@ -99,7 +59,7 @@ class Player extends Phaser.Scene {
         let my = this.my;
         
         this.points = [
-            65, 100,
+            65, 200,
             1335, 100
         ];
         this.points2 = [
@@ -113,14 +73,20 @@ class Player extends Phaser.Scene {
         //set background scene
         my.sprite.background = this.add.sprite(700, 150, "background");
         my.sprite.background.setScale(1.4);
+        //set score text
+        this.myScore = this.add.bitmapText(100, 100, 'classic_font', 'Score', 32);
         //position the plane on screen
         my.sprite.plane = this.add.sprite(this.planeX, this.planeY, "plane");
         my.sprite.plane.setScale(3);
         my.sprite.plane.mode = true;
         //position the enemy alien on screen
         my.sprite.alien1 = this.add.follower(this.curve, 10, 10, "alienShip1");
+        my.sprite.alien1.setScale(0.5);
         my.sprite.alien2 = this.add.follower(this.curve, 10, 10, "alienShip1");
+        my.sprite.alien2.setScale(0.5);
         my.sprite.alien1.visible = false;
+        my.sprite.heart1 = this.add.sprite(1200, 590, "heart");
+        my.sprite.heart2 = this.add.sprite(1230, 590, "heart");
 
 
         // Create white puff animation
@@ -236,6 +202,10 @@ class Player extends Phaser.Scene {
             console.log("you won!!! Next screen!!!");
             this.scene.start("nextLevel");
         }
+
+        if(this.player_health == 0) {
+            this.scene.start("youLose");
+        }
         
 
 
@@ -284,15 +254,25 @@ class Player extends Phaser.Scene {
         //check for player and bullet collision
         for (let bullet of my.sprite.alienBulletGroup.getChildren()) {
             if (this.collides(my.sprite.plane, bullet)) {
-                
-                //my.sprite.plane.visible = false;
-                this.boom = this.add.sprite(my.sprite.plane.x, my.sprite.plane.y, "laser_burst10").setScale(1).play("boom");
-                my.sprite.plane.x = -100;
+                this.player_health -= 1;
+                console.log("after hit: ");
+                if(this.player_health == 0) {
+                    console.log("0 health ");
+                    //my.sprite.plane.visible = false;
+                    my.sprite.heart2.visible = false;
+                    my.sprite.plane.y = -100;
+
+                    my.sprite.plane.mode = false;
+                }
+                this.add.sprite(my.sprite.plane.x, my.sprite.plane.y, "laser_burst10").setScale(1).play("boom");
                 this.sound.play("baam");
-                bullet.y = -100;
+                bullet.x = -100;
+                if (this.player_health == 1) {
+                    my.sprite.heart1.visible = false;
+                    console.log("player health == 1");
+                }
                 
-                //my.sprite.alien1.stopFollow();
-                my.sprite.plane.mode = false;
+                
             }
         }
 
@@ -369,10 +349,35 @@ class Player extends Phaser.Scene {
         return true;
     }
 
+    
 }
 
 
 
+
+
+class End extends Phaser.Scene {
+    constructor(){
+        super("youLose");
+    }
+
+    preload() {
+        this.load.bitmapFont('classic_font', 'atari-smooth.png', 'atari-smooth.xml');
+    }
+
+    create() {
+        //this.youLoseText = this.add.bitmapText(100, 100, 'classic_font', 'YOU LOSE!!!', 40);
+        this.instructionText = this.add.bitmapText(170, 300, 'classic_font', 'press SPACE bar to restart game', 32);
+
+        this.space = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE);
+    }
+
+    update() {
+        if (this.space.isDown) {
+            this.scene.start("nextLevel");
+        }
+    }
+}
 
 
 
