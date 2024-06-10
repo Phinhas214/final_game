@@ -21,7 +21,7 @@ class FinalGame extends Phaser.Scene {
         this.map = this.add.tilemap("medium_level", this.TILESIZE, this.TILESIZE, this.TILEHEIGHT, this.TILEWIDTH);
 
         // Add a tileset to the map
-        this.tileset = this.map.addTilesetImage("tilesheet_complete", "tilemap_tiles");
+        this.tileset = this.map.addTilesetImage("tilesheet_complete", "tilesheet_complete");
 
         // Create the layers
         this.floor = this.map.createLayer("Floor", this.tileset, 0, 0);
